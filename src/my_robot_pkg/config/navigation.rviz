@@ -1,0 +1,57 @@
+Background Color: 48 48 48
+Fixed Frame: map
+Frame Rate: 30
+
+# Map Display
+- Class: rviz_default_plugins/Map
+  Name: Map
+  Topic: /map
+  Color Scheme: map
+
+# Robot Model
+- Class: rviz_default_plugins/RobotModel
+  Name: Robot Model
+  Robot Description: robot_description
+
+# Odometry
+- Class: rviz_default_plugins/Odometry
+  Name: Odometry
+  Topic: /odometry/filtered
+  Color: 255; 0; 0
+
+# Planned Path
+- Class: rviz_default_plugins/Path
+  Name: Global Plan
+  Topic: /plan
+  Color: 0; 255; 0
+
+# Current Path (from path receiver)
+- Class: rviz_default_plugins/Path
+  Name: Current Path
+  Topic: /current_path
+  Color: 255; 255; 0
+
+# Goal Pose
+- Class: rviz_default_plugins/Pose
+  Name: Goal Pose
+  Topic: /goal_pose
+  Color: 255; 0; 255
+
+# Lookahead Point
+- Class: rviz_default_plugins/Position
+  Name: Lookahead Point
+  Topic: /lookahead_point
+  Color: 0; 255; 255
+
+# TF
+- Class: rviz_default_plugins/TF
+  Name: TF
+  Show Names: true
+  Show Axes: true
+  Show Arrows: true
+
+# Laser Scan (if available)
+- Class: rviz_default_plugins/LaserScan
+  Name: Laser Scan
+  Topic: /scan
+  Color: 255; 255; 255
