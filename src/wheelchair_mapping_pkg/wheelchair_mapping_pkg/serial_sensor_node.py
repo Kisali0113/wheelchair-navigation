@@ -120,6 +120,7 @@ class SerialSensorNode(Node):
     #         self.get_logger().error(f'Serial write error: {exc}')
     #         self.serial_conn = None
   
+  
     def cmd_vel_callback(self, msg: Float64MultiArray) -> None:
         if len(msg.data) < 2:
             return
@@ -128,7 +129,9 @@ class SerialSensorNode(Node):
         steer_ang = float(msg.data[1])
 
         command = "{:.2f},{:.2f}\n".format(linear_vel, steer_ang)
+
         self.send_serial_command(command)
+
 
     def send_serial_command(self, command: str) -> None:
         if self.serial_conn is None or not self.serial_conn.is_open:
@@ -204,9 +207,9 @@ class SerialSensorNode(Node):
         self.imu_pub.publish(imu_msg)
 
         # Publish Ultrasonic Ranges
-        self.us_front_pub.publish(self.create_range_msg(now, 'us_front_link', dist_front_cm))
-        self.us_left_pub.publish(self.create_range_msg(now, 'us_left_link', dist_left_cm))
-        self.us_right_pub.publish(self.create_range_msg(now, 'us_right_link', dist_right_cm))
+        self.us_front_pub.publish(self.create_range_msg(now, 'ultrasonic_front_link', dist_front_cm))
+        self.us_left_pub.publish(self.create_range_msg(now, 'ultrasonic_left_link', dist_left_cm))
+        self.us_right_pub.publish(self.create_range_msg(now, 'ultrasonic_right_link', dist_right_cm))
 
     def create_range_msg(self, stamp, frame_id, dist_cm):
         """Helper to format the Range message."""
@@ -214,10 +217,10 @@ class SerialSensorNode(Node):
         msg.header.stamp = stamp.to_msg()
         msg.header.frame_id = frame_id
         msg.radiation_type = Range.ULTRASOUND
-        msg.field_of_view = 0.26  
-        msg.min_range = 0.02      
-        msg.max_range = 4.00      
-        msg.range = dist_cm / 100.0 
+        msg.field_of_view = 0.5
+        msg.min_range = 0.02
+        msg.max_range = 2.0
+        msg.range = dist_cm / 100.0
         return msg
 
     @staticmethod

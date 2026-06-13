@@ -92,6 +92,9 @@ def generate_launch_description():
                 'heading_topic': '/mag_heading',
                 'odom_frame': 'odom',
                 'base_frame': 'base_link',
+                'comp_filter_alpha': 0.98,
+                'heading_filter_alpha': 0.1,
+                'accel_filter_alpha': 0.2,
             }],
         ),
 
@@ -110,7 +113,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='us_front_transform',
-            arguments=['1.10', '0.0', '0.15', '0', '0', '0', 'base_link', 'us_front_link'],
+            arguments=['1.10', '0.0', '0.15', '0', '0', '0', 'base_link', 'ultrasonic_front_link'],
         ),
 
         # Static transform for Left Ultrasonic (Angled outward by ~45 degrees or 0.78 rad)
@@ -118,7 +121,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='us_left_transform',
-            arguments=['1.0', '0.4', '0.15', '0.78', '0', '0', 'base_link', 'us_left_link'],
+            arguments=['0.45', '0.31', '0.15', '0.78', '0', '0', 'base_link', 'ultrasonic_left_link'],
         ),
 
         # Static transform for Right Ultrasonic (Angled outward by -45 degrees or -0.78 rad)
@@ -126,7 +129,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='us_right_transform',
-            arguments=['1.0', '-0.4', '0.15', '-0.78', '0', '0', 'base_link', 'us_right_link'],
+            arguments=['0.45', '-0.31', '0.15', '-0.78', '0', '0', 'base_link', 'ultrasonic_right_link'],
         ),
 
         # EKF for filtered odometry

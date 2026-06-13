@@ -8,11 +8,11 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     serial_port = LaunchConfiguration('serial_port')
     baud_rate = LaunchConfiguration('baud_rate')
-    wheel_radius = LaunchConfiguration('wheel_radius')
     wheel_base = LaunchConfiguration('wheel_base')
-    ticks_per_revolution = LaunchConfiguration('ticks_per_revolution')
-    steer_ticks_per_revolution = LaunchConfiguration('steer_ticks_per_revolution')
-    steer_max_angle_deg = LaunchConfiguration('steer_max_angle_deg')
+    
+    pkg_wheelchair = FindPackageShare('wheelchair_mapping_pkg')
+    rviz_config = PathJoinSubstitution([pkg_wheelchair, 'config', 'rviz.rviz'])
+    sim_time = {'use_sim_time': True}
 
     ekf_config = PathJoinSubstitution([
         FindPackageShare('wheelchair_mapping_pkg'),
@@ -30,24 +30,8 @@ def generate_launch_description():
             description='Arduino serial baud rate',
         ),
         DeclareLaunchArgument(
-            'wheel_radius', default_value='0.220',
-            description='Wheel radius in meters',
-        ),
-        DeclareLaunchArgument(
-            'wheel_base', default_value='0.705',
-            description='Distance from rear axle to front wheel',
-        ),
-        DeclareLaunchArgument(
-            'ticks_per_revolution', default_value='1024',
-            description='Encoder ticks per wheel revolution',
-        ),
-        DeclareLaunchArgument(
-            'steer_ticks_per_revolution', default_value='1024',
-            description='Steering encoder ticks per revolution',
-        ),
-        DeclareLaunchArgument(
-            'steer_max_angle_deg', default_value='60.0',
-            description='Maximum steering angle for front axle in degrees',
+            'wheel_base', default_value='1.05',
+            description='Wheelbase of the robot in meters',
         ),
 
         Node(
@@ -67,12 +51,16 @@ def generate_launch_description():
             name='encoder_odom_node',
             output='screen',
             parameters=[{
-                'wheel_radius': wheel_radius,
                 'wheel_base': wheel_base,
-                'ticks_per_revolution': ticks_per_revolution,
-                'steer_ticks_per_revolution': steer_ticks_per_revolution,
-                'steer_max_angle_deg': steer_max_angle_deg,
-                'steer_center_offset': 0,
+                'velocity_topic': '/wheel_speed',
+                'steer_angle_topic': '/steer_angle',
+                'imu_topic': '/imu/data',
+                'heading_topic': '/mag_heading',
+                'odom_frame': 'odom',
+                'base_frame': 'base_link',
+                'comp_filter_alpha': 0.98,
+                'heading_filter_alpha': 0.1,
+                'accel_filter_alpha': 0.2,
             }],
         ),
         Node(
@@ -82,6 +70,31 @@ def generate_launch_description():
             output='screen',
             arguments=['1.08', '0.08', '0.23', '0', '0', '0', 'base_link', 'laser'],
         ),
+
+        # Static transform for Front Ultrasonic
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='us_front_transform',
+            arguments=['1.10', '0.0', '0.15', '0', '0', '0', 'base_link', 'ultrasonic_front_link'],
+        ),
+
+        # Static transform for Left Ultrasonic (Angled outward by ~45 degrees or 0.78 rad)
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='us_left_transform',
+            arguments=['0.45', '0.31', '0.15', '0.78', '0', '0', 'base_link', 'ultrasonic_left_link'],
+        ),
+
+        # Static transform for Right Ultrasonic (Angled outward by -45 degrees or -0.78 rad)
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='us_right_transform',
+            arguments=['0.45', '-0.31', '0.15', '-0.78', '0', '0', 'base_link', 'ultrasonic_right_link'],
+        ),
+
         Node(
             package='robot_localization',
             executable='ekf_node',
@@ -115,7 +128,18 @@ def generate_launch_description():
                 'autostart': True,                 # 🔥 THIS IS KEY
                 'node_names': ['slam_toolbox']     # managed nodes
             }]
-)
+        ),
+
+
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            arguments=['-d', rviz_config],
+            parameters=[sim_time],
+            output='screen'
+        )
+
         # RViz workflow hints:
         #  - Set fixed frame to 'map'
         #  - Add display for LaserScan on '/scan'
