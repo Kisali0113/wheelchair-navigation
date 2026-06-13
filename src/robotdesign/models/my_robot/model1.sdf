@@ -1,0 +1,430 @@
+<sdf version='1.11'>
+  <model name='robotdesign'>
+    <link name='base_link'>
+      <inertial>
+        <pose>0.18001 2.8314999999999999e-06 0.14277000000000001 0 0 0</pose>
+        <mass>6.1353999999999997</mass>
+        <inertia>
+          <ixx>0.092310000000000003</ixx>
+          <ixy>0.0077965999999999999</ixy>
+          <ixz>-0.0068618000000000004</ixz>
+          <iyy>0.095326999999999995</iyy>
+          <iyz>-5.9799999999999997e-05</iyz>
+          <izz>0.056644</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_link_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/base_link.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='base_link_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/base_link.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+      <visual name='base_link_fixed_joint_lump__camera_link_visual_1'>
+        <pose>0.20000000000000001 0 0.80000000000000004 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.050000000000000003 0.050000000000000003 0.050000000000000003</size>
+          </box>
+        </geometry>
+      </visual>
+      <sensor name='camera' type='camera'>
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <visualize>true</visualize>
+        <camera>
+          <horizontal_fov>1.0469999999999999</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.10000000000000001</near>
+            <far>100</far>
+          </clip>
+        </camera>
+        <plugin name='gz::sim::systems::Sensors' filename='libgz-sim-sensors-system.so'/>
+        <pose>0.20000000000000001 0 0.80000000000000004 0 0 0</pose>
+      </sensor>
+    </link>
+    <joint name='chairleftjoint' type='revolute'>
+      <pose relative_to='base_link'>0.089732000000000006 0.25 0.77000000000000002 -3.1415853071795872 0 0</pose>
+      <parent>base_link</parent>
+      <child>chairleft</child>
+      <axis>
+        <xyz>0 0 -1</xyz>
+        <limit>
+          <lower>-1.04</lower>
+          <upper>0</upper>
+          <effort>5</effort>
+          <velocity>2</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.10000000000000001</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='chairleft'>
+      <pose relative_to='chairleftjoint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.68593999999999999</mass>
+        <inertia>
+          <ixx>0.0021356999999999999</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0039087000000000002</iyy>
+          <iyz>0</iyz>
+          <izz>0.0022193</izz>
+        </inertia>
+      </inertial>
+      <collision name='chairleft_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/chairleft.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='chairleft_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/chairleft.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='chairrightjoint' type='revolute'>
+      <pose relative_to='base_link'>0.089732000000000006 -0.25 0.77000000000000002 -3.1415853071795872 0 0</pose>
+      <parent>base_link</parent>
+      <child>chairright</child>
+      <axis>
+        <xyz>0 0 -1</xyz>
+        <limit>
+          <lower>0</lower>
+          <upper>1.04</upper>
+          <effort>5</effort>
+          <velocity>2</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.10000000000000001</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='chairright'>
+      <pose relative_to='chairrightjoint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.68593999999999999</mass>
+        <inertia>
+          <ixx>0.0021356999999999999</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0039087000000000002</iyy>
+          <iyz>0</iyz>
+          <izz>0.0022193</izz>
+        </inertia>
+      </inertial>
+      <collision name='chairright_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/chairright.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='chairright_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/chairright.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='frontjoint' type='revolute'>
+      <pose relative_to='base_link'>0.67273000000000005 0 0.29389999999999999 -3.1415853071795872 0 0</pose>
+      <parent>base_link</parent>
+      <child>front</child>
+      <axis>
+        <xyz>0 0 -1</xyz>
+        <limit>
+          <lower>-1.0471999999999999</lower>
+          <upper>1.0471999999999999</upper>
+          <effort>5</effort>
+          <velocity>2</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.10000000000000001</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='front'>
+      <pose relative_to='frontjoint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.26848</mass>
+        <inertia>
+          <ixx>0.0013401000000000001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00092232000000000002</iyy>
+          <iyz>0</iyz>
+          <izz>0.00079465999999999998</izz>
+        </inertia>
+      </inertial>
+      <collision name='front_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/front.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='front_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/front.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='frontwheeljoint' type='revolute'>
+      <pose relative_to='front'>-0.0080085 -0.061173999999999999 0.26898 -1.5708 0 0</pose>
+      <parent>front</parent>
+      <child>frontwheel</child>
+      <axis>
+        <xyz>-0.12981000000000001 0 -0.99153999999999998</xyz>
+        <limit>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0.10000000000000001</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='frontwheel'>
+      <pose relative_to='frontwheeljoint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>4.0537000000000001</mass>
+        <inertia>
+          <ixx>0.018745999999999999</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.018506999999999999</iyy>
+          <iyz>0</iyz>
+          <izz>0.032452000000000002</izz>
+        </inertia>
+      </inertial>
+      <collision name='frontwheel_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/frontwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='frontwheel_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/frontwheel.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='leftwheeljoint' type='revolute'>
+      <pose relative_to='base_link'>-0.37630000000000002 0.42197000000000001 0.01 1.5708 0 0</pose>
+      <parent>base_link</parent>
+      <child>leftwheel</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0.10000000000000001</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='leftwheel'>
+      <pose relative_to='leftwheeljoint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>3.4211999999999998</mass>
+        <inertia>
+          <ixx>0.012658000000000001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.012658000000000001</iyy>
+          <iyz>0</iyz>
+          <izz>0.020698000000000001</izz>
+        </inertia>
+      </inertial>
+      <collision name='leftwheel_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/leftwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='leftwheel_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/leftwheel.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='rightwheeljoint' type='revolute'>
+      <pose relative_to='base_link'>-0.37630000000000002 -0.42415999999999998 0.01 1.5708 0 0</pose>
+      <parent>base_link</parent>
+      <child>rightwheel</child>
+      <axis>
+        <xyz>0 0 -1</xyz>
+        <limit>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <damping>0.10000000000000001</damping>
+          <friction>0</friction>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='rightwheel'>
+      <pose relative_to='rightwheeljoint'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>3.4211999999999998</mass>
+        <inertia>
+          <ixx>0.012658000000000001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.012658000000000001</iyy>
+          <iyz>0</iyz>
+          <izz>0.020698000000000001</izz>
+        </inertia>
+      </inertial>
+      <collision name='rightwheel_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/rightwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='rightwheel_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/rightwheel.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.990199983 1 1 1</diffuse>
+          <ambient>0.990199983 1 1 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <!-- CAMERA LINK -->
+<link name="camera_link">
+  <pose>0.2 0 0.8 0 0 0</pose>
+
+  <sensor name="camera" type="camera">
+    <always_on>1</always_on>
+    <update_rate>30</update_rate>
+
+    <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>100</far>
+      </clip>
+    </camera>
+  </sensor>
+</link>
+
+<!-- FIXED JOINT -->
+<joint name="camera_joint" type="fixed">
+  <parent>base_link</parent>
+  <child>camera_link</child>
+</joint>    
+  </model>
+</sdf>

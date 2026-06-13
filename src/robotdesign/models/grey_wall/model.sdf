@@ -1,0 +1,15 @@
+<sdf version="1.7">
+  <model name="grey_wall">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>7.5 0.2 2.8</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
+

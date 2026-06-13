@@ -1,0 +1,294 @@
+<sdf version="1.9">
+  <model name="my_robot">
+
+    <!-- BASE -->
+    <link name="base_link">
+      <inertial>
+        <pose>0.18001 0 0.14277 0 0 0</pose>
+        <mass>6.1354</mass>
+        <inertia>
+          <ixx>0.09231</ixx>
+          <ixy>0.0077966</ixy>
+          <ixz>-0.0068618</ixz>
+          <iyy>0.095327</iyy>
+          <iyz>-5.98e-05</iyz>
+          <izz>0.056644</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/base_link.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="base_visual">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/base_link.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+
+    <!-- LEFT WHEEL -->
+    <link name="leftwheel">
+      <pose relative_to="leftwheeljoint">0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/leftwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="left_visual">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/leftwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="leftwheeljoint" type="revolute">
+      <pose relative_to="base_link">-0.3763 0.42197 0.01 1.5708 0 0</pose>
+      <parent>base_link</parent>
+      <child>leftwheel</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+	<limit>
+          <lower>-1e16</lower>
+           <upper>1e16</upper>
+	   <effort>10</effort>
+	   <velocity>10</velocity>
+	</limit>
+
+    <dynamics>
+      <damping>0.1</damping>
+      <friction>0</friction>
+    </dynamics>
+      </axis>
+    </joint>
+
+    <!-- RIGHT WHEEL -->
+    <link name="rightwheel">
+      <pose relative_to="rightwheeljoint">0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/rightwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="right_visual">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/rightwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="rightwheeljoint" type="revolute">
+      <pose relative_to="base_link">-0.3763 -0.42416 0.01 1.5708 0 0</pose>
+      <parent>base_link</parent>
+      <child>rightwheel</child>
+      <axis>
+        <xyz>0 0 -1</xyz>
+        <limit>
+      <lower>-1e16</lower>
+      <upper>1e16</upper>
+      <effort>10</effort>
+      <velocity>10</velocity>
+    </limit>
+
+    <dynamics>
+      <damping>0.1</damping>
+      <friction>0</friction>
+    </dynamics>
+      </axis>
+    </joint>
+
+    <!-- FRONT -->
+    <link name="front">
+      <pose relative_to="steering_joint">0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/front.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="f_visual">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/front.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="steering_joint" type="revolute">
+      <pose relative_to="base_link">0.67273 0 0.2939 3.1416 0 0</pose>
+      <parent>base_link</parent>
+      <child>front</child>
+      <axis>
+        <xyz>0 0 -1</xyz>
+        <limit>
+  <lower>-1.0472</lower>
+  <upper>1.0472</upper>
+  <effort>10</effort>
+  <velocity>5</velocity>
+</limit>
+      </axis>
+    </joint>
+
+    <!-- FRONT WHEEL -->
+    <link name="frontwheel">
+      <pose relative_to="front_wheel_joint">0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/frontwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="fwvisual">
+        <geometry>
+          <mesh>
+            <uri>file:///home/kisali/fyp_ws/src/robotdesign/meshes/frontwheel.STL</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+
+    <joint name="front_wheel_joint" type="revolute">
+      <pose relative_to="front">-0.0080085 -0.061174 0.26898 -1.5708 0 0</pose>
+      <parent>front</parent>
+      <child>frontwheel</child>
+      <axis>
+        <xyz>-0.12981 0 -0.99154</xyz>
+            <limit>
+      <lower>-1e16</lower>
+      <upper>1e16</upper>
+      <effort>10</effort>
+      <velocity>10</velocity>
+    </limit>
+
+    <dynamics>
+      <damping>0.1</damping>
+      <friction>0</friction>
+    </dynamics>
+      </axis>
+    </joint>
+
+<!-- LIDAR LINK -->
+<link name="lidar_link">
+  <pose relative_to="base_link">0.0 0 0.5 0 0 0</pose>
+  <visual name="lidar_visual">
+    <geometry>
+      <cylinder>
+        <radius>0.05</radius>
+        <length>0.07</length>
+      </cylinder>
+    </geometry>
+  </visual>
+  <collision name="lidar_collision">
+    <geometry>
+      <cylinder>
+        <radius>0.05</radius>
+        <length>0.07</length>
+      </cylinder>
+    </geometry>
+  </collision>
+<sensor name="lidar" type="ray">
+  <always_on>true</always_on>
+  <update_rate>10</update_rate>
+  <topic>/scan</topic>
+
+  <ray>
+    <scan>
+      <horizontal>
+        <samples>360</samples>
+        <resolution>1</resolution>
+        <min_angle>-3.14159</min_angle>
+        <max_angle>3.14159</max_angle>
+      </horizontal>
+    </scan>
+
+    <range>
+      <min>0.15</min>
+      <max>12.0</max>
+      <resolution>0.01</resolution>
+    </range>
+
+    <noise>
+      <type>gaussian</type>
+      <mean>0.0</mean>
+      <stddev>0.01</stddev>
+    </noise>
+  </ray>
+</sensor>
+
+</link>
+
+<joint name="lidar_joint" type="fixed">
+  <parent>base_link</parent>
+  <child>lidar_link</child>
+</joint>
+
+<!-- DEPTH CAMERA LINK -->
+<link name="camera_link">
+  <pose relative_to="base_link">0.3 0 0.6 0 0 0</pose>
+  <visual name="camera_visual">
+    <geometry>
+      <box><size>0.05 0.09 0.025</size></box>
+    </geometry>
+  </visual>
+  <sensor name="depth_camera" type="depth_camera">
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+    <topic>/camera/depth/image_raw</topic>
+     <camera>
+      <horizontal_fov>1.047</horizontal_fov>
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R_FLOAT32</format>
+      </image>
+      <clip>
+        <near>0.1</near>
+        <far>10.0</far>
+      </clip>
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.005</stddev>
+      </noise>
+    </camera>
+  </sensor>
+</link>
+
+<joint name="camera_joint" type="fixed">
+  <parent>base_link</parent>
+  <child>camera_link</child>
+</joint>
+
+<!-- TRICYCLE DRIVE — front wheel drives, steering_joint steers -->
+<plugin filename="libgz-sim-diff-drive-system.so"
+        name="gz::sim::systems::DiffDrive">
+  <left_joint>leftwheeljoint</left_joint>
+  <right_joint>rightwheeljoint</right_joint>
+  <wheel_separation>0.84613</wheel_separation>
+  <wheel_radius>0.1</wheel_radius>
+  <topic>cmd_vel</topic>
+  <odom_topic>odom</odom_topic>
+  <frame_id>odom</frame_id>
+  <child_frame_id>base_link</child_frame_id>
+  <odom_publish_frequency>10</odom_publish_frequency>
+</plugin>
+<!-- Required for GPU LiDAR and depth camera to render -->
+
+
+  </model>
+</sdf>

@@ -1,0 +1,124 @@
+<sdf version="1.9">
+  <world name="hospital_world">
+
+    <!-- Systems -->
+    <plugin filename="libgz-sim-physics-system.so" name="gz::sim::systems::Physics"/>
+    <plugin filename="libgz-sim-scene-broadcaster-system.so" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="libgz-sim-user-commands-system.so" name="gz::sim::systems::UserCommands"/>
+
+
+    <!-- Light -->
+    <light name="sun" type="directional">
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- Ground -->
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>50 50</size>
+            </plane>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 🧱 Corridor walls -->
+    <model name="wall_left">
+      <static>true</static>
+      <pose>-5 0 0 0 0 0</pose>
+      <link name="link">
+        <pose>0 0 1.5 0 0 0</pose>
+        <collision name="col">
+          <geometry><box><size>0.2 20 3</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 20 3</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wall_right">
+      <static>true</static>
+      <pose>5 0 0 0 0 0</pose>
+      <link name="link">
+        <pose>0 0 1.5 0 0 0</pose>
+        <collision name="col">
+          <geometry><box><size>0.2 20 3</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>0.2 20 3</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Back wall -->
+    <model name="wall_back">
+      <static>true</static>
+      <pose>0 -10 0 0 0 0</pose>
+      <link name="link">
+        <pose>0 0 1.5 0 0 0</pose>
+        <collision name="col">
+          <geometry><box><size>10 0.2 3</size></box></geometry>
+        </collision>
+        <visual name="vis">
+          <geometry><box><size>10 0.2 3</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 🛏️ Bed -->
+    <include>
+      <uri>model://MalePatientBed</uri>
+      <pose>2 -5 0 0 0 1.57</pose>
+    </include>
+
+    <!-- 🪑 Chair -->
+    <include>
+      <uri>model://OfficeChairBlack</uri>
+      <pose>-2 -4 0 0 0 0</pose>
+    </include>
+
+    <!-- 🧰 Medical cart -->
+    <include>
+      <uri>model://InstrumentCart1</uri>
+      <pose>3 -2 0 0 0 0</pose>
+    </include>
+
+    <!-- 👨 Patient -->
+    <include>
+      <uri>model://ElderMalePatient</uri>
+      <name>patient_1</name>
+      <pose>0 2 0 0 0 0</pose>
+    </include>
+
+    <!-- 🧍 Another patient -->
+    <include>
+      <uri>model://ElderMalePatient</uri>
+      <name>patient_2</name>
+      <pose>2 5 0 0 0 0</pose>
+    </include>
+
+    <!-- GUI -->
+    <gui>
+      <camera name="user_camera">
+        <pose>10 -20 25 0 1.0 1.5</pose>
+      </camera>
+    </gui>
+
+  </world>
+</sdf>

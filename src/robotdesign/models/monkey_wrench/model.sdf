@@ -1,0 +1,14 @@
+<sdf version="1.7">
+  <model name="monkey_wrench">
+    <static>false</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>0.3 0.05 0.02</size>
+          </box>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>
