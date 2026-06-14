@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable, ExecuteProcess
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, EnvironmentVariable, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -18,6 +18,9 @@ def generate_launch_description():
     ekf_config = LaunchConfiguration('ekf_config')
     nav2_params = LaunchConfiguration('nav2_params')
     use_sim_time = LaunchConfiguration('use_sim_time')
+    venv_site = LaunchConfiguration('venv_site')
+    python_executable = LaunchConfiguration('python_executable')
+    http_adapter_script = PathJoinSubstitution([pkg_wheelchair, 'wheelchair_mapping_pkg', 'http_adapter.py'])
   
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -61,6 +64,28 @@ def generate_launch_description():
             'use_sim_time',
             default_value='false',
             description='Use simulation time',
+        ),
+        DeclareLaunchArgument(
+            'python_executable',
+            default_value='python3',
+            description='Python executable to run the HTTP adapter (use venv python)',
+        ),
+        DeclareLaunchArgument(
+            'venv_site',
+            default_value='',
+            description='Full path to the virtualenv site-packages to prepend to PYTHONPATH',
+        ),
+
+        # Prepend virtualenv site-packages to PYTHONPATH when provided
+        SetEnvironmentVariable(
+            'PYTHONPATH',
+            [venv_site, TextSubstitution(text=':'), EnvironmentVariable('PYTHONPATH')],
+        ),
+
+        # HTTP adapter for Firestore updates
+        ExecuteProcess(
+            cmd=[python_executable, http_adapter_script],
+            output='screen',
         ),
 
         # Arduino serial node

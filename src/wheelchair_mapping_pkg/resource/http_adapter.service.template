@@ -1,0 +1,14 @@
+[Unit]
+Description=Wheelchair HTTP Adapter Service
+After=network.target
+
+[Service]
+Type=simple
+# Update ExecStart to point to your venv python or system python and adapter path
+ExecStart=/usr/bin/python3 /opt/wheelchair/http_adapter.py
+Restart=on-failure
+User=robot
+Environment=PORT=8080
+
+[Install]
+WantedBy=multi-user.target

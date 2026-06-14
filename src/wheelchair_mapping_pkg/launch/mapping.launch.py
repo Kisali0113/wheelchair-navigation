@@ -11,14 +11,20 @@ def generate_launch_description():
     wheel_base = LaunchConfiguration('wheel_base')
     
     pkg_wheelchair = FindPackageShare('wheelchair_mapping_pkg')
-    rviz_config = PathJoinSubstitution([pkg_wheelchair, 'config', 'rviz.rviz'])
-    sim_time = {'use_sim_time': True}
+    rviz_config = PathJoinSubstitution([pkg_wheelchair, 'config', 'mapping.rviz'])
+    sim_time = {'use_sim_time': False}
 
     ekf_config = PathJoinSubstitution([
         FindPackageShare('wheelchair_mapping_pkg'),
         'config',
         'ekf.yaml',
     ])
+
+    slam_params_file = PathJoinSubstitution([
+    FindPackageShare('wheelchair_mapping_pkg'),
+    'config',
+    'slam_toolbox.yaml',
+])
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -102,6 +108,7 @@ def generate_launch_description():
             output='screen',
             parameters=[ekf_config],
         ),
+
         Node(
             package='slam_toolbox',
             executable='async_slam_toolbox_node',
