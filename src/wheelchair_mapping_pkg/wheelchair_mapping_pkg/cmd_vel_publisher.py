@@ -49,17 +49,28 @@ class CmdVelPublisher(Node):
         self.publish_cmd_vels()
 
     def publish_cmd_vels(self):
-        # 1. Apply EMA Filter to linear velocity
-        self.filtered_linear_vel = ((self.alpha_linear * self.linear_vel) + ((1.0 - self.alpha_linear) * self.filtered_linear_vel))
+        # 1. Apply EMA Filter to linear velocity.
+        # If the incoming command is a full stop, clear the filtered velocity immediately.
+        if abs(self.linear_vel) < 1e-3:
+            self.filtered_linear_vel = 0.0
+        else:
+            self.filtered_linear_vel = (
+                self.alpha_linear * self.linear_vel
+                + (1.0 - self.alpha_linear) * self.filtered_linear_vel
+            )
+
+        # If the filtered velocity is below the low-speed threshold, stop completely.
+        if abs(self.filtered_linear_vel) < self.min_linear_velocity:
+            self.filtered_linear_vel = 0.0
 
         # 2. Calculate steering angle with low-speed spike protection
         if abs(self.linear_vel) > self.min_linear_velocity:
             steer_ang_rad = math.atan(self.wheelbase * self.angular_vel / self.linear_vel)
             raw_steer_ang = math.degrees(steer_ang_rad)
         else:
-            # If stopping or creeping too slowly, hold the last known steering angle 
-            # instead of letting it spike to 90 degrees or dropping to 0 instantly.
-            if self.linear_vel == 0.0 and self.angular_vel == 0.0:
+            # If stopping or creeping too slowly, hold the last known steering angle
+            # but zero it when the robot is commanded to stop.
+            if abs(self.linear_vel) < 1e-3 and abs(self.angular_vel) < 1e-3:
                 raw_steer_ang = 0.0  # Safe center if explicitly commanded to a full stop
             else:
                 raw_steer_ang = self.filtered_steer_ang

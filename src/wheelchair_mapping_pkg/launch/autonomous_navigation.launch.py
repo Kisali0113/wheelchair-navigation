@@ -157,17 +157,17 @@ def generate_launch_description():
             arguments=['0.45', '-0.31', '0.15', '-0.78', '0', '0', 'base_link', 'ultrasonic_right_link'],
         ),
 
-        # EKF for filtered odometry
-        # Node(
-        #     package='robot_localization',
-        #     executable='ekf_node',
-        #     name='ekf_filter_node',
-        #     output='screen',
-        #     parameters=[ekf_config, {'use_sim_time': use_sim_time}],
-        #     remappings=[
-        #         ('/odometry/filtered', '/odom')
-        #     ],
-        # ),
+        #EKF for filtered odometry
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',
+            output='screen',
+            parameters=[ekf_config, {'use_sim_time': use_sim_time}],
+            remappings=[
+                ('/odometry/filtered', '/odom')
+            ],
+        ),
 
         # Load the saved map
         Node(
