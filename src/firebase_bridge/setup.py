@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'firebase_listener = firebase_bridge.firebase_listener:main'
+            'firebase_listener = firebase_bridge.firebase_listener:main',
+            'firebase_publisher = firebase_bridge.firebase_publisher:main'
         ],
     },
 )

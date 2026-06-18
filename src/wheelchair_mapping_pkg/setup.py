@@ -33,9 +33,7 @@ setup(
             'serial_sensor_node = wheelchair_mapping_pkg.serial_sensor_node:main',
             'encoder_odom_node = wheelchair_mapping_pkg.encoder_odom_node:main',
             'cmd_vel_publisher = wheelchair_mapping_pkg.cmd_vel_publisher:main',
-            'person_tracker_node = wheelchair_mapping_pkg.person_tracker_node:main',
-            'firebase_node = wheelchair_mapping_pkg.firebase_node:main',
-            'http_adapter = wheelchair_mapping_pkg.http_adapter:main'
+            'person_tracker_node = wheelchair_mapping_pkg.person_tracker_node:main'
         ],
     },
 )

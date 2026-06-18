@@ -20,7 +20,6 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     venv_site = LaunchConfiguration('venv_site')
     python_executable = LaunchConfiguration('python_executable')
-    http_adapter_script = PathJoinSubstitution([pkg_wheelchair, 'wheelchair_mapping_pkg', 'http_adapter.py'])
   
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -38,7 +37,7 @@ def generate_launch_description():
             default_value=PathJoinSubstitution([
                 FindPackageShare('wheelchair_mapping_pkg'),
                 'maps',
-                'my_map.yaml',
+                'wheelchair_map.yaml',
             ]),
             description='Full path to the saved map YAML file',
         ),
@@ -82,11 +81,6 @@ def generate_launch_description():
             [venv_site, TextSubstitution(text=':'), EnvironmentVariable('PYTHONPATH')],
         ),
 
-        # HTTP adapter for Firestore updates
-        ExecuteProcess(
-            cmd=[python_executable, http_adapter_script],
-            output='screen',
-        ),
 
         # Arduino serial node
         Node(

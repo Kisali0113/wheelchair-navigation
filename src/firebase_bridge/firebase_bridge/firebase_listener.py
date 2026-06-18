@@ -27,10 +27,10 @@ class FirebaseListener(Node):
             '/home/kisali/fyp_ws/src/firebase_bridge/config/serviceAccountKey.json'
         )
 
-        self.nav_client = ActionClient(
-            self,
-            NavigateToPose,
-            'navigate_to_pose'
+        self.goal_pub = self.create_publisher(
+            PoseStamped,
+            'goal_pose',
+            10
         )
 
         if not firebase_admin._apps:
@@ -79,75 +79,27 @@ class FirebaseListener(Node):
 
             self.get_logger().info(f"Destination = {destination}")
 
-            self.send_nav_goal(x, y)
+            self.publish_goal(x, y)
 
-    def send_nav_goal(self, x, y):
-        
-        self.get_logger().info("Inside send_nav_goal")
-        goal_msg = NavigateToPose.Goal()
+    def publish_goal(self, x, y):
 
-        goal_msg.pose.header.frame_id = "map"
+        goal = PoseStamped()
 
-        goal_msg.pose.pose.position.x = float(x)
-        goal_msg.pose.pose.position.y = float(y)
+        goal.header.stamp = self.get_clock().now().to_msg()
+        goal.header.frame_id = "map"
 
-        goal_msg.pose.pose.orientation.w = 1.0
+        goal.pose.position.x = float(x)
+        goal.pose.position.y = float(y)
+        goal.pose.position.z = 0.0
 
-        self.get_logger().info("Waiting for Nav2 server")
-        self.nav_client.wait_for_server()
-        self.get_logger().info("Nav2 server found")
+        goal.pose.orientation.w = 1.0
 
-        goal_future = self.nav_client.send_goal_async(goal_msg)
-
-        goal_future.add_done_callback(
-            self.goal_response_callback
-        )
-        self.get_logger().info("Calling send_nav_goal")
-        self.get_logger().info(
-            f"Goal sent ({x}, {y})"
-    )
-        
-    def goal_response_callback(self, future):
-
-        goal_handle = future.result()
-
-        if not goal_handle.accepted:
-            self.get_logger().error("Goal rejected")
-            return
-
-        self.get_logger().info("Goal accepted")
-
-        result_future = goal_handle.get_result_async()
-
-        result_future.add_done_callback(
-            self.result_callback
-        )
-
-    def result_callback(self, future):
-
-        result = future.result()
+        self.goal_pub.publish(goal)
 
         self.get_logger().info(
-            f"Nav2 result status: {result.status}"
+            f"Published goal ({x}, {y})"
         )
-
-        # STATUS_SUCCEEDED = 4
-        if result.status == 4:
-
-            self.get_logger().info(
-                "Destination reached!"
-            )
-
-            self.db.collection("requests").document(
-                self.current_request_id
-            ).update({
-                "status": "arrived"
-            })
-        else:
-
-            self.get_logger().warn(
-                "Navigation failed"
-            )
+        
 
 def main(args=None):
 

@@ -13,7 +13,8 @@ try:
     import firebase_admin
     from firebase_admin import credentials, firestore
 
-    cred = credentials.Certificate('/path/to/serviceAccountKey.json')
+    cred = credentials.Certificate(
+    '/home/kisali/fyp_ws/src/firebase_bridge/config/serviceAccountKey.json')
     firebase_admin.initialize_app(cred)
     db = firestore.client()
     FIRESTORE_SERVER_TIMESTAMP = firestore.SERVER_TIMESTAMP
@@ -58,7 +59,7 @@ class OdomBridge(Node):
         super().__init__('odom_bridge')
         self.subscription = self.create_subscription(
             Odometry,
-            '/odom',
+            'wheel/odom',
             self.odom_callback,
             10,
         )
@@ -67,14 +68,14 @@ class OdomBridge(Node):
         odom_x = msg.pose.pose.position.x
         odom_y = msg.pose.pose.position.y
 
-        ui_x = normalize(odom_x, MIN_X, MAX_X)
-        ui_y = normalize(odom_y, MIN_Y, MAX_Y)
+        # ui_x = normalize(odom_x, MIN_X, MAX_X)
+        # ui_y = normalize(odom_y, MIN_Y, MAX_Y)
 
         status = 'Docked' if self.is_docked(odom_x, odom_y) else 'In Transit'
 
         payload = {
             'id': WHEELCHAIR_ID,
-            'location': {'x': ui_x, 'y': ui_y},
+            'location': {'x': odom_x, 'y': odom_y},
             'status': status,
         }
 
@@ -97,7 +98,7 @@ class OdomBridge(Node):
         # If adapter not available, update Firestore directly (may be mock)
         try:
             db.collection('wheelchairs').document(WHEELCHAIR_ID).update({
-                'location': {'x': ui_x, 'y': ui_y},
+                'location': {'x': odom_x, 'y': odom_y},
                 'status': status,
                 'updatedAt': firestore.SERVER_TIMESTAMP,
             })
