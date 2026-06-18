@@ -2,9 +2,12 @@
 
 import rclpy
 from rclpy.node import Node
-from nav2_msgs.action import NavigateToPose
-from rclpy.action import ActionClient
+
+# from nav2_msgs.action import NavigateToPose
+# from rclpy.action import ActionClient
+
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import String
 
 import sys
 
@@ -30,6 +33,12 @@ class FirebaseListener(Node):
         self.goal_pub = self.create_publisher(
             PoseStamped,
             'goal_pose',
+            10
+        )
+
+        self.request_pub = self.create_publisher(
+            String,
+            '/active_request_id',
             10
         )
 

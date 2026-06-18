@@ -1,3 +1,6 @@
+import os
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'firebase_bridge'
@@ -10,6 +13,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'),
+            glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -25,7 +30,8 @@ setup(
     entry_points={
         'console_scripts': [
             'firebase_listener = firebase_bridge.firebase_listener:main',
-            'firebase_publisher = firebase_bridge.firebase_publisher:main'
+            'firebase_publisher = firebase_bridge.firebase_publisher:main',
+            'goal_bridge = firebase_bridge.goal_bridge:main',
         ],
     },
 )
