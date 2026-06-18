@@ -59,7 +59,7 @@ class OdomBridge(Node):
         super().__init__('odom_bridge')
         self.subscription = self.create_subscription(
             Odometry,
-            'wheel/odom',
+            '/wheel/odom',
             self.odom_callback,
             10,
         )
@@ -67,6 +67,8 @@ class OdomBridge(Node):
     def odom_callback(self, msg):
         odom_x = msg.pose.pose.position.x
         odom_y = msg.pose.pose.position.y
+
+        self.get_logger().info( f"Odom = ({odom_x:.2f}, {odom_y:.2f})")
 
         # ui_x = normalize(odom_x, MIN_X, MAX_X)
         # ui_y = normalize(odom_y, MIN_Y, MAX_Y)
