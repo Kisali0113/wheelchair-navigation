@@ -42,6 +42,12 @@ class FirebaseListener(Node):
             10
         )
 
+        self.status_pub = self.create_publisher(
+            String,
+            '/active_request_status',
+            10
+        )
+
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
 
@@ -60,33 +66,67 @@ class FirebaseListener(Node):
         for doc in docs:
             data = doc.to_dict()
 
-            self.get_logger().info(
-            f"Request {doc.id} status={data.get('status')}"
-        )
+            status = data.get("status")
 
-            if data.get("status") != "in_transit":
-                continue
-
-            destination = data.get("destination")
-
-            self.get_logger().info(f"Destination = {destination}")
-
-            if destination is None:
-                continue
+            self.get_logger().info(f"Request {doc.id} status={status}")
             
-            x = destination["x"]
-            y = destination["y"]
+            # ---------- PICKUP ----------
+            if status == "pickup":
 
-            # Prevent duplicate goals
-            if self.last_request_id == doc.id:
+                pickup = data.get("pickup")
+
+                if pickup is None:
+                    continue
+
+                x = pickup["x"]
+                y = pickup["y"]
+
+            # ---------- DESTINATION ----------
+            elif status == "in_transit":
+                
+                destination = data.get("destination")
+
+                self.get_logger().info(f"Destination = {destination}")
+
+                if destination is None:
+                    continue
+                
+                x = destination["x"]
+                y = destination["y"]
+
+             # ---------- RETURN TO DOCK ----------
+            elif status == "returning":
+
+                x = 1.64867830276489
+                y = -6.20749378204346
+
+            else:
                 continue
 
-            self.last_request_id = doc.id
+            # Avoid duplicate goal publication
+            goal_key = f"{doc.id}_{status}"
+
+            if self.last_request_id == goal_key:
+                continue
+
+            self.last_request_id = goal_key
+
             self.current_request_id = doc.id
+            self.current_status = status
 
             self.get_logger().info(f"Navigate to ({x}, {y})")
 
             self.get_logger().info(f"Destination = {destination}")
+            
+            request_msg = String()
+            request_msg.data = doc.id
+
+            status_msg = String()
+            status_msg.data = status
+
+            self.request_pub.publish(request_msg)
+
+            self.status_pub.publish(status_msg)
 
             self.publish_goal(x, y)
 

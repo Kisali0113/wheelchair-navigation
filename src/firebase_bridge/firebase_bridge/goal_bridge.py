@@ -42,11 +42,19 @@ class GoalBridge(Node):
             'navigate_to_pose'
         )
         self.current_request_id = None
+        self.current_status = None
 
         self.request_sub = self.create_subscription(
             String,
             '/active_request_id',
             self.request_callback,
+            10
+        )
+
+        self.status_sub = self.create_subscription(
+            String,
+            '/active_request_status',
+            self.status_callback,
             10
         )
 
@@ -109,46 +117,54 @@ class GoalBridge(Node):
             self.result_callback
         )
 
-    def result_callback(
-        self,
-        future
-    ):
+    def result_callback(self, future):
 
         result = future.result()
 
+        self.get_logger().info(f"Navigation finished status={result.status}")
+
+        # STATUS_SUCCEEDED = 4
+        if result.status != 4:
+
+            self.get_logger().warn("Navigation failed")
+
+            return
+
+        self.get_logger().info("Goal reached!")
+
+        if self.current_request_id is None:
+
+            self.get_logger().warn("No request id available")
+
+            return
+
+        next_status = None
+
+        if self.current_status == "pickup":
+            next_status = "boarding"
+
+        elif self.current_status == "in_transit":
+            next_status = "arrived"
+
+        elif self.current_status == "returning":
+            next_status = "docked"
+
+        if next_status is None:
+            return
+
+        self.db.collection(
+            "requests"
+        ).document(
+            self.current_request_id
+        ).update({
+            "status": next_status
+        })
+
         self.get_logger().info(
-            f"Navigation finished "
-            f"status={result.status}"
+            f"Updated request "
+            f"{self.current_request_id} "
+            f"to {next_status}"
         )
-
-                # STATUS_SUCCEEDED = 4
-        if result.status == 4:
-
-            self.get_logger().info(
-                "Destination reached!"
-            )
-
-            if self.current_request_id:
-
-                self.db.collection(
-                    "requests"
-                ).document(
-                    self.current_request_id
-                ).update({
-                    "status": "completed"
-
-                })
-
-                self.get_logger().info(
-                    f"Updated request "
-                    f"{self.current_request_id}"
-                )
-
-        else:
-
-            self.get_logger().warn(
-                "Navigation failed"
-            )
 
 
     def request_callback(self, msg):
@@ -157,6 +173,14 @@ class GoalBridge(Node):
 
         self.get_logger().info(
             f"Current request = {msg.data}"
+        )
+
+    def status_callback(self, msg):
+
+        self.current_status = msg.data
+
+        self.get_logger().info(
+            f"Current request status = {msg.data}"
         )
 
 def main(args=None):

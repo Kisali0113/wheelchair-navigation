@@ -56,7 +56,23 @@ def normalize(value, min_val, max_val):
 
 class OdomBridge(Node):
     def __init__(self):
-        super().__init__('odom_bridge')
+        super().__init__('firebase_publisher')
+
+        self.db = firestore.client()
+
+        self.wheelchair_doc_id = None
+
+        docs = self.db.collection("wheelchairs")\
+            .where("chairId", "==", "wheelchair_1")\
+            .limit(1)\
+            .stream()
+
+        for doc in docs:
+            self.wheelchair_doc_id = doc.id
+            self.get_logger().info(
+                f"Found wheelchair doc: {doc.id}"
+            )
+
         self.subscription = self.create_subscription(
             Odometry,
             '/wheel/odom',
@@ -75,37 +91,37 @@ class OdomBridge(Node):
 
         status = 'Docked' if self.is_docked(odom_x, odom_y) else 'In Transit'
 
-        payload = {
-            'id': WHEELCHAIR_ID,
-            'location': {'x': odom_x, 'y': odom_y},
-            'status': status,
-        }
+        # payload = {
+        #     'id': WHEELCHAIR_ID,
+        #     'location': {'x': odom_x, 'y': odom_y},
+        #     'status': status,
+        # }
 
-        # Try sending to local HTTP adapter first (no extra deps required here)
-        try:
-            req = urllib.request.Request(
-                'http://localhost:8080/update',
-                data=json.dumps(payload).encode('utf-8'),
-                headers={'Content-Type': 'application/json'},
-                method='POST',
-            )
-            with urllib.request.urlopen(req, timeout=1.0) as resp:
-                # optional: check resp.status
-                pass
-            return
-        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
-            # adapter not reachable; fall back to direct Firestore update (mock safe)
-            self.get_logger().warning('Adapter unavailable, falling back to Firestore: %s', e)
+        # # Try sending to local HTTP adapter first (no extra deps required here)
+        # try:
+        #     req = urllib.request.Request(
+        #         'http://localhost:8080/update',
+        #         data=json.dumps(payload).encode('utf-8'),
+        #         headers={'Content-Type': 'application/json'},
+        #         method='POST',
+        #     )
+        #     with urllib.request.urlopen(req, timeout=1.0) as resp:
+        #         # optional: check resp.status
+        #         pass
+        #     return
+        # except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+        #     # adapter not reachable; fall back to direct Firestore update (mock safe)
+        #     self.get_logger().warning('Adapter unavailable, falling back to Firestore: %s', e)
 
         # If adapter not available, update Firestore directly (may be mock)
         try:
-            db.collection('wheelchairs').document(WHEELCHAIR_ID).update({
+            self.db.collection('wheelchairs').document(self.wheelchair_doc_id).update({
                 'location': {'x': odom_x, 'y': odom_y},
                 'status': status,
                 'updatedAt': firestore.SERVER_TIMESTAMP,
             })
         except Exception as e:
-            self.get_logger().error('Failed to update Firestore: %s', e)
+            self.get_logger().error(f'Failed to update Firestore: {e}')
 
     def is_docked(self, x, y):
         # implement your dock detection logic here
