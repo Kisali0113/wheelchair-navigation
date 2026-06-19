@@ -31,6 +31,10 @@ class PersonDetector(Node):
         self.cx = None
         self.cy = None
 
+        self.target_id = None
+        self.follow_enabled = True
+        self.lost_frames = 0
+
         self.model = YOLO("yolov8n.pt")
 
         self.create_subscription(
@@ -127,127 +131,196 @@ class PersonDetector(Node):
 
         frame = self.rgb_image.copy()
 
-        results = self.model(frame, verbose=False)
+        results = self.model.track(
+            frame,
+            persist=True,
+            tracker="bytetrack.yaml",
+            verbose=False
+        )
 
-        nearest_distance = 999.0
+        target_found = False
 
-        nearest_X = None
-        nearest_Y = None
-        nearest_Z = None
+        candidate_id = None
+        candidate_distance = 999.0
 
-        nearest_box = None
+        target_X = None
+        target_Y = None
+        target_Z = None
+
+        target_box = None
 
         for result in results:
 
-            for box in result.boxes:
+            if result.boxes.id is None:
+                continue
 
-                cls = int(box.cls[0])
+            ids = result.boxes.id.cpu().numpy()
+            boxes = result.boxes.xyxy.cpu().numpy()
+            classes = result.boxes.cls.cpu().numpy()
 
-                # YOLO class 0 = person
-                if cls != 0:
+            for box, cls, track_id in zip(
+                boxes,
+                classes,
+                ids
+            ):
+
+                if int(cls) != 0:
                     continue
 
-                x1, y1, x2, y2 = map(
-                    int,
-                    box.xyxy[0]
-                )
+                x1, y1, x2, y2 = map(int, box)
 
                 cx = int((x1 + x2) / 2)
                 cy = int((y1 + y2) / 2)
 
-                depth_mm = self.get_median_depth(
-                    cx,
-                    cy
-                )
+                depth_mm = self.get_median_depth(cx, cy)
 
                 if depth_mm is None:
                     continue
 
-                distance_m = depth_mm / 1000.0
+                Z = depth_mm / 1000.0
 
-                if distance_m <= 0:
+                if Z <= 0:
                     continue
 
-                u = float(cx)
-                v = float(cy)
+                X = (cx - self.cx) * Z / self.fx
+                Y = (cy - self.cy) * Z / self.fy
 
-                Z = distance_m
+                track_id = int(track_id)
 
-                X = (u - self.cx) * Z / self.fx
-                Y = (v - self.cy) * Z / self.fy
+                #
+                # NO TARGET YET
+                #
+                if self.target_id is None:
 
-                if Z < nearest_distance:
+                    if Z < candidate_distance:
 
-                    nearest_distance = Z
+                        candidate_distance = Z
+                        candidate_id = track_id
 
-                    nearest_X = X
-                    nearest_Y = Y
-                    nearest_Z = Z
+                        target_X = X
+                        target_Y = Y
+                        target_Z = Z
 
-                    nearest_box = (
-                        x1,
-                        y1,
-                        x2,
-                        y2,
-                        cx,
-                        cy
+                        target_box = (
+                            x1, y1,
+                            x2, y2,
+                            cx, cy
+                        )
+
+                #
+                # TARGET ALREADY LOCKED
+                #
+                else:
+
+                    if track_id != self.target_id:
+                        continue
+
+                    target_found = True
+
+                    target_X = X
+                    target_Y = Y
+                    target_Z = Z
+
+                    target_box = (
+                        x1, y1,
+                        x2, y2,
+                        cx, cy
                     )
 
-        if nearest_X is not None:
+        #
+        # LOCK TARGET ONCE
+        #
+        if self.target_id is None and candidate_id is not None:
+
+            self.target_id = candidate_id
+
+            self.get_logger().info(
+                f"LOCKED TARGET ID {self.target_id}"
+            )
+
+            target_found = True
+
+        #
+        # LOST TARGET LOGIC
+        #
+        if not target_found:
+
+            self.lost_frames += 1
+
+        else:
+
+            self.lost_frames = 0
+
+        if self.lost_frames > 50:
+
+            self.get_logger().warn(
+                "Target Lost"
+            )
+
+            self.target_id = None
+            self.lost_frames = 0
+
+        #
+        # PUBLISH TARGET
+        #
+        if target_X is not None:
 
             msg = PointStamped()
 
             msg.header.stamp = (
-                self.get_clock()
-                .now()
-                .to_msg()
+                self.get_clock().now().to_msg()
             )
 
-            msg.header.frame_id = "camera_color_optical_frame"
+            msg.header.frame_id = (
+                "camera_color_optical_frame"
+            )
 
-            msg.point.x = float(nearest_X)
-            msg.point.y = float(nearest_Y)
-            msg.point.z = float(nearest_Z)
+            msg.point.x = float(target_X)
+            msg.point.y = float(target_Y)
+            msg.point.z = float(target_Z)
 
             self.target_pub.publish(msg)
 
             dist_msg = Float32()
-            dist_msg.data = float(nearest_Z)
 
-            self.distance_pub.publish(dist_msg)
+            dist_msg.data = float(target_Z)
 
-            x1, y1, x2, y2, cx, cy = nearest_box
+            self.distance_pub.publish(
+                dist_msg
+            )
+
+            x1, y1, x2, y2, cx, cy = target_box
 
             cv2.rectangle(
                 frame,
                 (x1, y1),
                 (x2, y2),
-                (0, 255, 0),
-                2
+                (0, 0, 255),
+                3
             )
 
             cv2.circle(
                 frame,
                 (cx, cy),
                 5,
-                (0, 0, 255),
+                (0, 255, 0),
                 -1
             )
 
             cv2.putText(
                 frame,
-                f"X:{nearest_X:.2f}m",
+                f"TARGET ID {self.target_id}",
                 (20, 40),
                 cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
-                (0, 255, 0),
+                1,
+                (0, 0, 255),
                 2
             )
 
             cv2.putText(
                 frame,
-                f"Y:{nearest_Y:.2f}m",
-                (20, 70),
+                f"X={target_X:.2f}",
+                (20, 80),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.8,
                 (0, 255, 0),
@@ -256,8 +329,18 @@ class PersonDetector(Node):
 
             cv2.putText(
                 frame,
-                f"Z:{nearest_Z:.2f}m",
-                (20, 100),
+                f"Y={target_Y:.2f}",
+                (20, 120),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0, 255, 0),
+                2
+            )
+
+            cv2.putText(
+                frame,
+                f"Z={target_Z:.2f}",
+                (20, 160),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.8,
                 (0, 255, 0),
