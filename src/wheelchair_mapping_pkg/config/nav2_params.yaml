@@ -215,7 +215,7 @@ local_costmap:
       height: 3
       resolution: 0.05
       robot_radius: 0.3   # Replace with your actual wheelchair radius or footprint
-      plugins: ["obstacle_layer", "range_layer", "inflation_layer"]
+      plugins: ["obstacle_layer", "ultrasonic_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
@@ -230,16 +230,40 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      range_layer:
-        plugin: "nav2_costmap_2d::RangeSensorLayer"
+      ultrasonic_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
-        topics: ["/ultrasonic/front", "/ultrasonic/left", "/ultrasonic/right"]
-        phi: 1.2
-        inflate_cone: 1.0
-        no_readings_timeout: 0.5
-        clear_threshold: 0.2
-        mark_threshold: 0.8
-        clear_on_max_reading: true
+        observation_sources: ultrasonic_front ultrasonic_left ultrasonic_right
+        ultrasonic_front:
+          topic: /obstacle/front
+          max_obstacle_height: 0.5
+          clearing: false
+          marking: true
+          data_type: "PointCloud2"
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.0
+        ultrasonic_left:
+          topic: /obstacle/left
+          max_obstacle_height: 0.5
+          clearing: false
+          marking: true
+          data_type: "PointCloud2"
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.0
+        ultrasonic_right:
+          topic: /obstacle/right
+          max_obstacle_height: 0.5
+          clearing: false
+          marking: true
+          data_type: "PointCloud2"
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.0
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
