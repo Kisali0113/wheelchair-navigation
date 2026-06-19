@@ -149,7 +149,7 @@ class SerialSensorNode(Node):
         """Parse Arduino CSV payload and publish ROS2 topics."""
         # Process lines containing comma separation
         parts = data_str.split(',')
-        if len(parts) != 9:
+        if len(parts) != 10:
             return  # Filter out non-telemetry serial frames silently
 
         try:
@@ -160,11 +160,12 @@ class SerialSensorNode(Node):
             gyro_z = float(parts[3])
             acc_x = float(parts[4])
             acc_y = float(parts[5])
+            acc_z = float(parts[6])
             
             # FIXED: Correctly parse the remaining ultrasonic variables out of the payload
-            dist_front_cm = float(parts[6])
-            dist_right_cm = float(parts[7])
-            dist_left_cm = float(parts[8])
+            dist_front_cm = float(parts[7])
+            dist_right_cm = float(parts[8])
+            dist_left_cm = float(parts[9])
             
         except ValueError as exc:
             self.get_logger().warn(f'Value conversion failure: {exc}')
@@ -199,7 +200,7 @@ class SerialSensorNode(Node):
 
         imu_msg.linear_acceleration.x = acc_x
         imu_msg.linear_acceleration.y = acc_y
-        imu_msg.linear_acceleration.z = 0.0
+        imu_msg.linear_acceleration.z = acc_z
 
         imu_msg.orientation_covariance = [0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.2]
         imu_msg.angular_velocity_covariance = [0.02, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.05]
