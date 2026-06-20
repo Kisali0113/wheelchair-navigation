@@ -41,6 +41,8 @@ class GoalBridge(Node):
             NavigateToPose,
             'navigate_to_pose'
         )
+        self.goal_sent_pub = self.create_publisher(PoseStamped, 'goal_sent', 10)
+        self.status_pub = self.create_publisher(String, 'goal_status', 10)
         self.current_request_id = None
         self.current_status = None
 
@@ -82,6 +84,8 @@ class GoalBridge(Node):
 
         goal_msg.pose = msg
 
+        self.goal_sent_pub.publish(msg)
+
         future = self.nav_client.send_goal_async(
             goal_msg
         )
@@ -122,6 +126,10 @@ class GoalBridge(Node):
         result = future.result()
 
         self.get_logger().info(f"Navigation finished status={result.status}")
+
+        status_msg = String()
+        status_msg.data = 'succeeded' if result.status == 4 else f'failed:{result.status}'
+        self.status_pub.publish(status_msg)
 
         # STATUS_SUCCEEDED = 4
         if result.status != 4:

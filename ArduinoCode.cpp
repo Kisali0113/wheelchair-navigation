@@ -38,6 +38,9 @@ unsigned long lastRampUpdate = 0;
 const float ARDUINO_ALPHA_SPEED = 0.25; // 0.0 to 1.0 (lower is smoother)
 const float ARDUINO_ALPHA_STEER = 0.20;
 
+// Set true to echo commanded values back as synthetic sensor feedback.
+const bool SIMULATE_SENSOR_FEEDBACK = true;
+
 // =====================================================
 // MOTOR PINS
 // =====================================================
@@ -198,6 +201,10 @@ void stopMotor(int index)
 // =====================================================
 float readSteerAngle()
 {
+  if (SIMULATE_SENSOR_FEEDBACK) {
+    return targetSteer;
+  }
+
   int raw = analogRead(STEER_ENC_PIN);
   int delta = raw - CENTER_RAW;
   return delta * DEG_PER_COUNT * STEER_SIGN;
@@ -320,6 +327,12 @@ void steerTo(float targetDeg)
 // READ SPEED FROM ESP32 (NON-BLOCKING CHAR BUFFER)
 // =====================================================
 void readSpeedFromESP32() {
+  if (SIMULATE_SENSOR_FEEDBACK) {
+    currentSpeed = fabs(targetSpeed);
+    lastPacketTime = millis();
+    return;
+  }
+
   static char espBuffer[16];
   static size_t espIndex = 0;
 
@@ -356,8 +369,19 @@ void readROS2Commands() {
       rosBuffer[rosIndex] = '\0';
       rosIndex = 0; 
 
+      // Handle explicit camera servo positions
+      if (strcasecmp(rosBuffer, "SERVO180") == 0) {
+        isCameraRotated = true;
+        moveServo(CAMERA_SERVO_ID, angleToPosition(180), 1000);
+        Serial.println("ROS: servo moved to 180 degrees");
+      }
+      else if (strcasecmp(rosBuffer, "SERVO0") == 0) {
+        isCameraRotated = false;
+        moveServo(CAMERA_SERVO_ID, angleToPosition(0), 1000);
+        Serial.println("ROS: servo moved to 0 degrees");
+      }
       // Handle Camera Toggles
-      if (strcasecmp(rosBuffer, "CAM") == 0) {
+      else if (strcasecmp(rosBuffer, "CAM") == 0) {
         isCameraRotated = !isCameraRotated;
         moveServo(CAMERA_SERVO_ID, angleToPosition(isCameraRotated ? 180 : 0), 1000);
         // Camera toggle always accepted regardless of autonomous/manual lock
@@ -426,6 +450,7 @@ void readHC12()
 
         lastRemotePacket = millis();
         remoteActive = true;
+        bool wasAutonomous = autonomousEnabled;
 
         // A - camera servo to 180 degrees
         if (aVal == 1) {
@@ -444,13 +469,17 @@ void readHC12()
         // B - autonomous ON (remote enables autonomous)
         if (bVal == 1) {
           autonomousEnabled = true;
-          Serial.println("HC12: B=1 -> AUTONOMOUS ON");
+          if (!wasAutonomous) {
+            Serial.println("HC12: AUTONOMOUS MODE");
+          }
         }
 
         // D - autonomous OFF -> enter manual mode
         if (dVal == 1) {
           autonomousEnabled = false;
-          Serial.println("HC12: D=1 -> MANUAL MODE");
+          if (wasAutonomous) {
+            Serial.println("HC12: MANUAL MODE");
+          }
         }
       }
       buffer = "";
@@ -584,10 +613,6 @@ void processRemoteControl()
   targetSteer = joySteer;
 
   lastCommandTime = millis();
-
-  // Feedback for debugging: report applied manual command
-  Serial.print("REMOTE CMD -> speed:"); Serial.print(targetSpeed,3);
-  Serial.print(", steer:"); Serial.println(targetSteer,2);
 }
 
 void updateSpeedRamp()

@@ -34,7 +34,8 @@ setup(
             'encoder_odom_node = wheelchair_mapping_pkg.encoder_odom_node:main',
             'cmd_vel_publisher = wheelchair_mapping_pkg.cmd_vel_publisher:main',
             'person_tracker_node = wheelchair_mapping_pkg.person_tracker_node:main',
-            'initial_pose_publisher = wheelchair_mapping_pkg.initial_pose_publisher:main'
+            'initial_pose_publisher = wheelchair_mapping_pkg.initial_pose_publisher:main',
+            'camera_node = wheelchair_mapping_pkg.camera:main',
         ],
     },
 )

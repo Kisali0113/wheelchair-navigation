@@ -10,7 +10,8 @@ const char* PASSWORD = "YOUR_PASSWORD";
 // ─── Firebase Credentials ────────────────────────────
 const char* API_KEY = "AIzaSyB9G_7nb0FC2FQKwVBDHtcCh7XBc_E2OHE";
 const char* DATABASE_URL = "https://smart-wheelchair-91084-default-rtdb.asia-southeast1.firebasedatabase.app";
-
+const char* USER_EMAIL = "kisalithumara2002@gmail.com";
+const char* USER_PASSWORD = "kslthmr2002@";
 
 // ─── Firebase Objects ────────────────────────────────
 FirebaseData fbdo;
@@ -110,42 +111,57 @@ void closeGates() {
 
 // ─── Publish Gate Status to Firebase ─────────────────
 void publishGateStatus() {
+
   if (!signupOK) return;
 
-  if (millis() - lastStatusUpdate > STATUS_UPDATE_INTERVAL) {
-    lastStatusUpdate = millis();
+  bool isOpen = (gateStatus == GATE_OPEN);
 
-    String statusStr = (gateStatus == GATE_OPEN) ? "open" : "close";
-
-    if (Firebase.RTDB.setString(&fbdo, "/wheelchair/gate_status", statusStr)) {
-      Serial.print("Gate status published to Firebase: ");
-      Serial.println(statusStr);
-    } else {
-      Serial.print("Failed to publish gate status: ");
+  if (Firebase.RTDB.setBool(
+        &fbdo,
+        "/wheelchair/isOpen",
+        isOpen))
+  {
+      Serial.print("Updated isOpen = ");
+      Serial.println(isOpen);
+  }
+  else
+  {
+      Serial.print("Firebase update failed: ");
       Serial.println(fbdo.errorReason());
-    }
   }
 }
 
+
 // ─── Check Firebase Commands ─────────────────────────
-void checkFirebaseCommands() {
+void checkFirebaseState() {
+
   if (!signupOK) return;
 
-  if (Firebase.RTDB.getString(&fbdo, "/wheelchair/gate_command")) {
-    String command = fbdo.stringData();
+  if (Firebase.RTDB.getBool(
+        &fbdo,
+        "/wheelchair/isOpen"))
+  {
+      bool requestedState = fbdo.boolData();
 
-    if (command == "open_gate") {
-      Serial.println("Firebase command received: open_gate");
-      openGates();
-      // Clear command after processing
-      Firebase.RTDB.deleteNode(&fbdo, "/wheelchair/gate_command");
-    }
-    else if (command == "close_gate") {
-      Serial.println("Firebase command received: close_gate");
-      closeGates();
-      // Clear command after processing
-      Firebase.RTDB.deleteNode(&fbdo, "/wheelchair/gate_command");
-    }
+      if (requestedState &&
+          gateStatus != GATE_OPEN)
+      {
+          Serial.println(
+              "Firestore requested OPEN"
+          );
+
+          openGates();
+      }
+
+      else if (!requestedState &&
+               gateStatus != GATE_CLOSED)
+      {
+          Serial.println(
+              "Firestore requested CLOSE"
+          );
+
+          closeGates();
+      }
   }
 }
 
@@ -251,10 +267,10 @@ void loop() {
   checkButtons();
 
   // Check Firebase commands
-  checkFirebaseCommands();
+  checkFirebaseState();
 
   // Publish gate status periodically
-  publishGateStatus();
+   publishGateStatus();
 
   // Serial commands
   if (Serial.available()) {

@@ -260,5 +260,14 @@ def generate_launch_description():
             output='screen'
         ),
 
+        Node(
+            package='wheelchair_mapping_pkg',
+            executable='camera_node',
+            name='camera_node',
+            output='screen',
+        ),
+
+        
+
 
     ])

@@ -33,7 +33,7 @@ class CameraTrigger(Node):
 
         # Arduino serial params
         self.declare_parameter('arduino_port', '/dev/ttyACM0')
-        self.declare_parameter('arduino_baud', 9600)
+        self.declare_parameter('arduino_baud', 115200)
         self.declare_parameter('servo_angle', 180)
         self.declare_parameter('servo_repeat', 1)
         self.declare_parameter('servo_interval', 0.1)
@@ -46,7 +46,7 @@ class CameraTrigger(Node):
         self.declare_parameter('capture_frames', 10)
         self.declare_parameter('capture_interval', 0.5)
         self.declare_parameter('firebase_upload', True)
-        self.declare_parameter('firebase_cred', '/home/janidu/Downloads/Final Workspace/src/firebase_bridge/config/serviceAccountKey.json')
+        self.declare_parameter('firebase_cred', 'home/kisali/fyp_ws/src/firebase_bridge/config/serviceAccountKey.json')
         self.declare_parameter('firebase_bucket', 'smart-wheelchair-91084.firebasestorage.app')
 
         self.room3_x = float(self.get_parameter('room3_x').get_parameter_value().double_value)
@@ -85,6 +85,15 @@ class CameraTrigger(Node):
 
     def status_cb(self, msg: String):
         data = msg.data.lower() if msg.data is not None else ''
+        if data == 'room3':
+            if self.triggered:
+                self.get_logger().info('Room3 already triggered')
+                return
+            self.get_logger().info('Room3 status received, triggering camera/servo')
+            self.triggered = True
+            threading.Thread(target=self._trigger_actions, daemon=True).start()
+            return
+
         # consider 'succeeded' as arrival
         if 'succeeded' in data or data.startswith('arriv') or 'reached' in data:
             if self.last_goal is None:
