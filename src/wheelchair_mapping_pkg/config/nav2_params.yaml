@@ -24,7 +24,7 @@ controller_server:
       model_dt: 0.05
       batch_size: 2000
       vx_std: 0.2
-      vy_std: 0.0          # MUST be 0.0 for Ackermann (a tricycle cannot slide sideways)
+      vy_std: 0.0          # Kinematic bicycle/Ackermann model cannot slide sideways.
       wz_std: 0.15
       vx_max: 1.0
       vx_min: -0.30
@@ -34,6 +34,7 @@ controller_server:
       temperature: 0.5
       gamma: 0.015
 
+      # Nav2 MPPI's Ackermann model applies the kinematic bicycle constraints.
       motion_model: "Ackermann"
       AckermannConstraints:
         min_turning_r: 0.61
@@ -74,7 +75,7 @@ controller_server:
         cost_power: 1
         cost_weight: 3.81
         critical_cost: 300.0
-        consider_footprint: false
+        consider_footprint: true
         collision_cost: 1000000.0
         near_goal_distance: 1.0
         trajectory_point_step: 2
@@ -118,6 +119,8 @@ planner_server:
       tolerance: 0.5
       use_astar: false
       allow_unknown: true
+      motion_model_for_search: "REEDS_SHEPP"
+      minimum_turning_radius: 1.25
 
 bt_navigator:
   ros__parameters:
@@ -168,11 +171,8 @@ behavior_server:
     local_footprint_topic: local_costmap/published_footprint
     global_footprint_topic: global_costmap/published_footprint
     cycle_frequency: 10.0
-    behavior_plugins: ["spin", "backup", "drive_on_heading", "assisted_teleop", "wait"]
+    behavior_plugins: ["backup", "drive_on_heading", "assisted_teleop", "wait"]
     transform_tolerance: 1.0       # <-- CHANGE FROM 0.1 TO 1.0
-
-    spin:
-      plugin: "nav2_behaviors::Spin"
 
     backup:
       plugin: "nav2_behaviors::BackUp"
@@ -214,9 +214,8 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
-      robot_radius: 0.3   # Replace with your actual wheelchair radius or footprint
-      # Ultrasonic range layer temporarily disabled.
-      plugins: ["obstacle_layer", "inflation_layer"]
+      footprint: "[[1.25, 0.475], [1.25, -0.475], [-0.20, -0.475], [-0.20, 0.475]]"
+      plugins: ["obstacle_layer", "ultrasonic_layer", "inflation_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: true
@@ -231,20 +230,44 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      # range_layer:
-      #   plugin: "nav2_costmap_2d::RangeSensorLayer"
-      #   enabled: true
-      #   topics: ["/ultrasonic/front", "/ultrasonic/left", "/ultrasonic/right"]
-      #   phi: 1.2
-      #   inflate_cone: 1.0
-      #   no_readings_timeout: 0.5
-      #   clear_threshold: 0.2
-      #   mark_threshold: 0.8
-      #   clear_on_max_reading: true
+      ultrasonic_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: true
+        observation_sources: ultrasonic_front ultrasonic_left ultrasonic_right
+        ultrasonic_front:
+          topic: /obstacle/front
+          max_obstacle_height: 0.5
+          clearing: false
+          marking: true
+          data_type: "PointCloud2"
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.0
+        ultrasonic_left:
+          topic: /obstacle/left
+          max_obstacle_height: 0.5
+          clearing: false
+          marking: true
+          data_type: "PointCloud2"
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.0
+        ultrasonic_right:
+          topic: /obstacle/right
+          max_obstacle_height: 0.5
+          clearing: false
+          marking: true
+          data_type: "PointCloud2"
+          raytrace_max_range: 2.0
+          raytrace_min_range: 0.0
+          obstacle_max_range: 2.0
+          obstacle_min_range: 0.0
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.3
+        inflation_radius: 0.7
       always_send_full_costmap: true
       introspection_mode: "disabled"
 
@@ -257,7 +280,7 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       transform_tolerance: 1.0     # <-- ADD THIS LINE
-      robot_radius: 0.3   # Replace with your actual wheelchair radius or footprint
+      footprint: "[[1.25, 0.475], [1.25, -0.475], [-0.20, -0.475], [-0.20, 0.475]]"
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -281,7 +304,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.3
+        inflation_radius: 0.7
       always_send_full_costmap: true
       introspection_mode: "disabled"
 
@@ -303,7 +326,7 @@ amcl:
     max_beams: 60
     max_particles: 2000
     min_particles: 500
-    robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    robot_model_type: "nav2_amcl::OmniMotionModel"
     resample_interval: 1
     update_min_d: 0.05
     update_min_a: 0.05
