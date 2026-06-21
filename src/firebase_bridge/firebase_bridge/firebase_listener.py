@@ -3,6 +3,9 @@
 import rclpy
 from rclpy.node import Node
 
+import subprocess
+import signal
+
 # from nav2_msgs.action import NavigateToPose
 # from rclpy.action import ActionClient
 
@@ -25,6 +28,7 @@ class FirebaseListener(Node):
         super().__init__('firebase_listener')
 
         self.last_request_id = None
+        self.camera_process = None
 
         cred = credentials.Certificate(
             '/home/kisali/fyp_ws/src/firebase_bridge/config/serviceAccountKey.json'
@@ -65,6 +69,14 @@ class FirebaseListener(Node):
 
         for doc in docs:
             data = doc.to_dict()
+
+            camera_active = data.get("camera_active")
+
+            if camera_active is True:
+                self.start_camera_server()
+
+            elif camera_active is False:
+                self.stop_camera_server()
 
             status = data.get("status")
 
@@ -149,6 +161,42 @@ class FirebaseListener(Node):
             f"Published goal ({x}, {y})"
         )
         
+    def start_camera_server(self):
+        
+        if self.camera_process is not None:
+            self.get_logger().info("web_video_server already running")
+            return
+
+        try:
+                self.camera_process = subprocess.Popen(
+                    [
+                        "ros2",
+                        "run",
+                        "web_video_server",
+                        "web_video_server"
+                    ]
+                )
+
+                self.get_logger().info("Started web_video_server")
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to start web_video_server: {e}")
+        
+    def stop_camera_server(self):
+        
+        if self.camera_process is None:
+                return
+
+        try:
+                self.camera_process.terminate()
+                self.camera_process.wait(timeout=5)
+
+                self.get_logger().info("Stopped web_video_server")
+
+        except Exception as e:
+                self.get_logger().error(f"Failed to stop web_video_server: {e}")
+
+        self.camera_process = None
 
 def main(args=None):
 
