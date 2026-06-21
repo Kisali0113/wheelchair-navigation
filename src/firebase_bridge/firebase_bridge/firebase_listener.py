@@ -30,6 +30,7 @@ class FirebaseListener(Node):
         self.last_request_id = None
         self.camera_process = None
 
+
         cred = credentials.Certificate(
             '/home/kisali/fyp_ws/src/firebase_bridge/config/serviceAccountKey.json'
         )
@@ -58,25 +59,42 @@ class FirebaseListener(Node):
         self.db = firestore.client()
 
         self.watch_requests()
+        self.watch_camera_control()
 
     def watch_requests(self):
 
         requests_ref = self.db.collection('requests')
 
         requests_ref.on_snapshot(self.on_snapshot)
+    
+    def watch_camera_control(self):
+
+        control_ref = (
+            self.db
+            .collection("system")
+            .document("control")
+        )
+
+        control_ref.on_snapshot(
+            self.on_camera_control
+        )
+
+        self.get_logger().info(
+            "Camera control listener started"
+        )
 
     def on_snapshot(self, docs, changes, read_time):
 
         for doc in docs:
             data = doc.to_dict()
 
-            camera_active = data.get("camera_active")
+            # camera_active = data.get("camera_active")
 
-            if camera_active is True:
-                self.start_camera_server()
+            # if camera_active is True:
+            #     self.start_camera_server()
 
-            elif camera_active is False:
-                self.stop_camera_server()
+            # elif camera_active is False:
+            #     self.stop_camera_server()
 
             status = data.get("status")
 
@@ -161,42 +179,66 @@ class FirebaseListener(Node):
             f"Published goal ({x}, {y})"
         )
         
+    def on_camera_control(self, docs, changes, read_time):
+
+        self.get_logger().info("Camera listener triggered")
+
+        for doc in docs:
+
+            data = doc.to_dict()
+
+            self.get_logger().info(f"Data = {data}")
+
+            camera_active = data.get("camera_active", False)
+
+            if camera_active:
+                self.get_logger().info("Starting camera server")
+                self.start_camera_server()
+            else:
+                self.get_logger().info("Stopping camera server")
+                self.stop_camera_server()
+    
     def start_camera_server(self):
-        
+
         if self.camera_process is not None:
-            self.get_logger().info("web_video_server already running")
+            self.get_logger().info(
+                "web_video_server already running"
+            )
             return
 
         try:
-                self.camera_process = subprocess.Popen(
-                    [
-                        "ros2",
-                        "run",
-                        "web_video_server",
-                        "web_video_server"
-                    ]
-                )
 
-                self.get_logger().info("Started web_video_server")
+            self.camera_process = subprocess.Popen(
+                [
+                    "bash",
+                    "-c",
+                    "source /opt/ros/jazzy/setup.bash && ros2 run web_video_server web_video_server"
+                ]
+            )
+
+            self.get_logger().info(
+                "Started web_video_server"
+            )
 
         except Exception as e:
-            self.get_logger().error(f"Failed to start web_video_server: {e}")
-        
+
+            self.get_logger().error(
+                f"Failed to start web_video_server: {e}"
+            )
+
     def stop_camera_server(self):
-        
+
         if self.camera_process is None:
-                return
+            return
 
-        try:
-                self.camera_process.terminate()
-                self.camera_process.wait(timeout=5)
-
-                self.get_logger().info("Stopped web_video_server")
-
-        except Exception as e:
-                self.get_logger().error(f"Failed to stop web_video_server: {e}")
+        self.camera_process.terminate()
+        self.camera_process.wait()
 
         self.camera_process = None
+
+        self.get_logger().info(
+            "Stopped web_video_server"
+        )
 
 def main(args=None):
 

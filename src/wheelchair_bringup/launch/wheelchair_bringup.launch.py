@@ -48,14 +48,14 @@ def generate_launch_description():
         ),
 
         # Web Video Server
-        ExecuteProcess(
-            cmd=[
-                'bash', '-c',
-                'source /opt/ros/jazzy/setup.bash && '
-                'ros2 run web_video_server web_video_server'
-            ],
-            output='screen'
-        ),
+        # ExecuteProcess(
+        #     cmd=[
+        #         'bash', '-c',
+        #         'source /opt/ros/jazzy/setup.bash && '
+        #         'ros2 run web_video_server web_video_server'
+        #     ],
+        #     output='screen'
+        # ),
 
         # AI
         ExecuteProcess(

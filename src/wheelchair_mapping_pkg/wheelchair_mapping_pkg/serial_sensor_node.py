@@ -17,7 +17,7 @@ class SerialSensorNode(Node):
     def __init__(self):
         super().__init__('serial_sensor_node')
 
-        self.declare_parameter('serial_port', '/dev/ttyACM1')
+        self.declare_parameter('serial_port', '/dev/ttyACM0')
         self.declare_parameter('baud_rate', 115200)
         self.declare_parameter('read_rate', 50.0)
         self.declare_parameter('imu_frame_id', 'imu_link')
