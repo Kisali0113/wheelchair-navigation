@@ -148,31 +148,59 @@ class GoalBridge(Node):
 
         next_status = None
 
-        if self.current_status == "pickup":
-            next_status = "boarding"
-
-        elif self.current_status == "in_transit":
-            next_status = "arrived"
-
-        elif self.current_status == "returning":
-            next_status = "docked"
-
-        if next_status is None:
-            return
-
-        self.db.collection(
+ 
+        request_doc = self.db.collection(
             "requests"
         ).document(
             self.current_request_id
-        ).update({
-            "status": next_status
-        })
+        ).get()
 
-        self.get_logger().info(
-            f"Updated request "
-            f"{self.current_request_id} "
-            f"to {next_status}"
-        )
+        if not request_doc.exists:
+            return
+
+        request_data = request_doc.to_dict()
+
+        wheelchair_id = request_data.get("wheelchairId")
+
+        if self.current_status == "pickup_in_transit":
+            next_status = "pickup_arrived"
+
+            self.db.collection("requests").document(
+                self.current_request_id
+            ).update({
+                "status": next_status
+            })
+
+            if wheelchair_id:
+                self.db.collection("wheelchairs").document(
+                    wheelchair_id
+                ).update({
+                    "status": "At Pickup"
+                })
+
+        elif self.current_status == "destination_in_transit":
+
+            next_status = "destination_arrived"
+            self.db.collection("requests").document(
+                self.current_request_id
+            ).update({
+                "status": next_status
+            })
+
+            if wheelchair_id:
+                self.db.collection("wheelchairs").document(
+                    wheelchair_id
+                ).update({
+                    "status": "At Destination"
+                })
+
+
+        if next_status:
+            self.get_logger().info(
+                f"Updated request "
+                f"{self.current_request_id} "
+                f"to {next_status}"
+            )
 
 
     def request_callback(self, msg):

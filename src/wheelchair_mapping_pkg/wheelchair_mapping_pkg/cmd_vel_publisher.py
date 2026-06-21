@@ -21,7 +21,7 @@ class CmdVelPublisher(Node):
 
         # --- Low-Speed Protection Cutoff ---
         # Below this linear velocity (m/s), we stop computing new Ackermann angles to avoid spikes.
-        self.declare_parameter('min_linear_velocity', 0.05) 
+        self.declare_parameter('min_linear_velocity', 0.0005)
         self.min_linear_velocity = self.get_parameter('min_linear_velocity').value
 
         self.linear_vel = 0.0

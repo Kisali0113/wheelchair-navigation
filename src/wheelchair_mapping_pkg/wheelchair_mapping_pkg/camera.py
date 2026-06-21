@@ -32,7 +32,7 @@ class CameraTrigger(Node):
         self.declare_parameter('room3_tol', 0.5)
 
         # Arduino serial params
-        self.declare_parameter('arduino_port', '/dev/ttyACM0')
+        self.declare_parameter('arduino_port', '/dev/ttyACM1')
         self.declare_parameter('arduino_baud', 115200)
         self.declare_parameter('servo_angle', 180)
         self.declare_parameter('servo_repeat', 1)

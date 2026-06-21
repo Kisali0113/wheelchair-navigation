@@ -71,9 +71,11 @@ class FirebaseListener(Node):
             self.get_logger().info(f"Request {doc.id} status={status}")
             
             # ---------- PICKUP ----------
-            if status == "pickup":
+            if status == "pickup_in_transit":
 
-                pickup = data.get("pickup")
+                pickup = data.get("location")
+
+                self.get_logger().info(f"Pickup = {pickup}")
 
                 if pickup is None:
                     continue
@@ -82,7 +84,7 @@ class FirebaseListener(Node):
                 y = pickup["y"]
 
             # ---------- DESTINATION ----------
-            elif status == "in_transit":
+            elif status == "destination_in_transit":
                 
                 destination = data.get("destination")
 
@@ -95,7 +97,7 @@ class FirebaseListener(Node):
                 y = destination["y"]
 
              # ---------- RETURN TO DOCK ----------
-            elif status == "returning":
+            elif status == "completed":
 
                 x = 1.64867830276489
                 y = -6.20749378204346
@@ -115,9 +117,7 @@ class FirebaseListener(Node):
             self.current_status = status
 
             self.get_logger().info(f"Navigate to ({x}, {y})")
-
-            self.get_logger().info(f"Destination = {destination}")
-            
+         
             request_msg = String()
             request_msg.data = doc.id
 

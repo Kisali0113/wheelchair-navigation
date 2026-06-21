@@ -15,7 +15,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'arduino_port',
-            default_value='/dev/ttyACM0',
+            default_value='/dev/ttyACM1',
             description='Serial port connected to the Arduino',
         ),
         DeclareLaunchArgument(

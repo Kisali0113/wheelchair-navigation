@@ -24,7 +24,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'serial_port',
-            default_value='/dev/ttyACM0',
+            default_value='/dev/ttyACM1',
             description='Serial port connected to Arduino',
         ),
         DeclareLaunchArgument(
@@ -267,7 +267,10 @@ def generate_launch_description():
             output='screen',
         ),
 
-        
-
-
-    ])
+        Node(
+            package='wheelchair_mapping_pkg',
+            executable='initial_pose_publisher',
+            name='initial_pose_publisher',
+            output='screen',
+        )
+   ])

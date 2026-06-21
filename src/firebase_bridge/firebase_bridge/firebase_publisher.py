@@ -2,10 +2,6 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 import logging
-import json
-import urllib.request
-import urllib.error
-
 # Try to import firebase_admin; if it's not available (e.g. in a dev env or
 # the VS Code interpreter doesn't have the package), fall back to a lightweight
 # mock so the ROS node can still be linted/run without hard ImportError.
@@ -29,8 +25,13 @@ except Exception as e:
         def __init__(self, doc_id):
             self.doc_id = doc_id
 
-        def update(self, data):
-            logging.getLogger(__name__).info('[firebase-mock] update %s: %s', self.doc_id, data)
+        def set(self, data, merge=False):
+            logging.getLogger(__name__).info(
+                '[firebase-mock] set %s (merge=%s): %s',
+                self.doc_id,
+                merge,
+                data,
+            )
 
     class _DummyCollection:
         def __init__(self, name):
@@ -38,6 +39,15 @@ except Exception as e:
 
         def document(self, doc_id):
             return _DummyDoc(doc_id)
+
+        def where(self, *args, **kwargs):
+            return self
+
+        def limit(self, count):
+            return self
+
+        def stream(self):
+            return []
 
     class _DummyDB:
         def collection(self, name):
@@ -58,12 +68,14 @@ class OdomBridge(Node):
     def __init__(self):
         super().__init__('firebase_publisher')
 
-        self.db = firestore.client()
+        self.db = db
 
-        self.wheelchair_doc_id = None
+        self.declare_parameter('chair_id', WHEELCHAIR_ID)
+        self.chair_id = self.get_parameter('chair_id').value
+        self.wheelchair_doc_id = self.chair_id
 
         docs = self.db.collection("wheelchairs")\
-            .where("chairId", "==", "wheelchair_1")\
+            .where("chairId", "==", self.chair_id)\
             .limit(1)\
             .stream()
 
@@ -71,6 +83,12 @@ class OdomBridge(Node):
             self.wheelchair_doc_id = doc.id
             self.get_logger().info(
                 f"Found wheelchair doc: {doc.id}"
+            )
+            break
+        else:
+            self.get_logger().warning(
+                f'No wheelchair document found for chairId={self.chair_id!r}; '
+                f'creating wheelchairs/{self.wheelchair_doc_id}'
             )
 
         self.subscription = self.create_subscription(
@@ -113,13 +131,15 @@ class OdomBridge(Node):
         #     # adapter not reachable; fall back to direct Firestore update (mock safe)
         #     self.get_logger().warning('Adapter unavailable, falling back to Firestore: %s', e)
 
-        # If adapter not available, update Firestore directly (may be mock)
+        # Upsert the document so a missing/deleted wheelchair record does not
+        # cause update() to fail with a 404 on every odometry callback.
         try:
-            self.db.collection('wheelchairs').document(self.wheelchair_doc_id).update({
+            self.db.collection('wheelchairs').document(self.wheelchair_doc_id).set({
+                'chairId': self.chair_id,
                 'location': {'x': odom_x, 'y': odom_y},
                 'status': status,
-                'updatedAt': firestore.SERVER_TIMESTAMP,
-            })
+                'updatedAt': FIRESTORE_SERVER_TIMESTAMP,
+            }, merge=True)
         except Exception as e:
             self.get_logger().error(f'Failed to update Firestore: {e}')
 
