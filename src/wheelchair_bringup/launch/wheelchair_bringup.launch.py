@@ -61,9 +61,20 @@ def generate_launch_description():
         ExecuteProcess(
             cmd=[
                 'bash', '-c',
+                'source /opt/ros/jazzy/setup.bash && '
+                'source ~/fyp_ws/install/setup.bash && '
                 'source ~/ai_ws/venv/bin/activate && '
                 'python3 /home/kisali/ai_ws/person.py'
             ],
-            output='screen'
+            output='screen' 
+),
+
+        ExecuteProcess(
+            cmd=[
+                'bash', '-c',
+                'source ~/fyp_ws/install/setup.bash && '
+                'ros2 run wheelchair_mapping_pkg initial_pose_publisher'
+            ],
+            output='screen' 
         ),
     ])
