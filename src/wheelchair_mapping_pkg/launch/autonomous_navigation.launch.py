@@ -267,10 +267,10 @@ def generate_launch_description():
             output='screen',
         ),
 
-        Node(
-            package='wheelchair_mapping_pkg',
-            executable='initial_pose_publisher',
-            name='initial_pose_publisher',
-            output='screen',
-        )
+        # Node(
+        #     package='wheelchair_mapping_pkg',
+        #     executable='initial_pose_publisher',
+        #     name='initial_pose_publisher',
+        #     output='screen',
+        # )
    ])

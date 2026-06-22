@@ -33,12 +33,12 @@ class InitialPosePublisher(Node):
         msg.header.frame_id = 'map'
         msg.header.stamp = self.get_clock().now().to_msg()
 
-        msg.pose.pose.position.x = 1.64867830276489
-        msg.pose.pose.position.y = -6.20749378204346
+        msg.pose.pose.position.x = -0.6444106101989746
+        msg.pose.pose.position.y = -1.1026581525802612
 
-        msg.pose.pose.orientation.z = 0.0
-        msg.pose.pose.orientation.w = 1.0
-
+        msg.pose.pose.orientation.z = -0.8274465543862738
+        msg.pose.pose.orientation.w = 0.5615444769867151   
+ 
         self.publisher.publish(msg)
 
         self.get_logger().info(

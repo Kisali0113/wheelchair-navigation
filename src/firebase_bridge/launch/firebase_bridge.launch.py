@@ -39,29 +39,29 @@ def generate_launch_description():
             name='firebase_listener',
             output='screen',
         ),
-        Node(
-            package='firebase_bridge',
-            executable='firebase_publisher',
-            name='firebase_publisher',
-            output='screen',
-        ),
+        # Node(
+        #     package='firebase_bridge',
+        #     executable='firebase_publisher',
+        #     name='firebase_publisher',
+        #     output='screen',
+        # ),
         Node(
             package='firebase_bridge',
             executable='goal_bridge',
             name='goal_bridge',
             output='screen',
         ),
-        Node(
-            package='wheelchair_mapping_pkg',
-            executable='camera_node',
-            name='camera_trigger',
-            output='screen',
-            parameters=[{
-                'arduino_port': arduino_port,
-                'room3_x': room3_x,
-                'room3_y': room3_y,
-                'room3_tol': room3_tol,
-                'servo_angle': 180,
-            }],
-        ),
+        # Node(
+        #     package='wheelchair_mapping_pkg',
+        #     executable='camera_node',
+        #     name='camera_trigger',
+        #     output='screen',
+        #     parameters=[{
+        #         'arduino_port': arduino_port,
+        #         'room3_x': room3_x,
+        #         'room3_y': room3_y,
+        #         'room3_tol': room3_tol,
+        #         'servo_angle': 180,
+        #     }],
+        # ),
     ])

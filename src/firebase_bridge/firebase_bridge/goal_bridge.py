@@ -64,6 +64,7 @@ class GoalBridge(Node):
 
     def goal_callback(self, msg):
 
+
         self.get_logger().info(
             f"Received goal: "
             f"({msg.pose.position.x}, "
@@ -85,6 +86,13 @@ class GoalBridge(Node):
         goal_msg.pose = msg
 
         self.goal_sent_pub.publish(msg)
+
+        self.get_logger().info(
+            f"Sending frame={msg.header.frame_id}, "
+            f"x={msg.pose.position.x}, "
+            f"y={msg.pose.position.y}"
+        )
+
 
         future = self.nav_client.send_goal_async(
             goal_msg

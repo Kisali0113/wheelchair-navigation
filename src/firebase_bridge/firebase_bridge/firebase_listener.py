@@ -29,7 +29,7 @@ class FirebaseListener(Node):
 
         self.last_request_id = None
         self.camera_process = None
-
+        self.get_logger().info("Firebase listener node started")
 
         cred = credentials.Certificate(
             '/home/kisali/fyp_ws/src/firebase_bridge/config/serviceAccountKey.json'
@@ -47,6 +47,12 @@ class FirebaseListener(Node):
             10
         )
 
+        self.follow_pub = self.create_publisher(
+            String,
+            "/caregiver_following",
+            10
+        )
+
         self.status_pub = self.create_publisher(
             String,
             '/active_request_status',
@@ -55,35 +61,43 @@ class FirebaseListener(Node):
 
         if not firebase_admin._apps:
             firebase_admin.initialize_app(cred)
+    # def watch_camera_control(self):
 
+    #     control_ref = (
+    #         self.db
+    #         .collection("system")
+    #         .document("control")
+    #     )
         self.db = firestore.client()
 
         self.watch_requests()
-        self.watch_camera_control()
+        # self.watch_camera_control()
 
     def watch_requests(self):
+        self.get_logger().info("inside watch_requests()")
 
         requests_ref = self.db.collection('requests')
 
         requests_ref.on_snapshot(self.on_snapshot)
     
-    def watch_camera_control(self):
+    # def watch_camera_control(self):
 
-        control_ref = (
-            self.db
-            .collection("system")
-            .document("control")
-        )
+    #     control_ref = (
+    #         self.db
+    #         .collection("system")
+    #         .document("control")
+    #     )
 
-        control_ref.on_snapshot(
-            self.on_camera_control
-        )
+        # control_ref.on_snapshot(
+        #     self.on_camera_control
+        # )
 
-        self.get_logger().info(
-            "Camera control listener started"
-        )
+        # self.get_logger().info(
+        #     "Camera control listener started"
+        # )
 
     def on_snapshot(self, docs, changes, read_time):
+        self.get_logger().info("inside on snapshot()")
 
         for doc in docs:
             data = doc.to_dict()
@@ -101,17 +115,33 @@ class FirebaseListener(Node):
             self.get_logger().info(f"Request {doc.id} status={status}")
             
             # ---------- PICKUP ----------
-            if status == "pickup_in_transit":
+            if status == "assigned" or status == "pickup_in_transit":
 
-                pickup = data.get("location")
+                pickup_name = data.get("location")
 
-                self.get_logger().info(f"Pickup = {pickup}")
+                self.get_logger().info(f"Pickup = {pickup_name}")
 
-                if pickup is None:
+                if pickup_name is None:
                     continue
 
-                x = pickup["x"]
-                y = pickup["y"]
+                room_docs = (
+                    self.db.collection("rooms")
+                    .where("name", "==", pickup_name)
+                    .limit(1)
+                    .stream()
+                )
+                room = next(room_docs, None)
+
+                if room is None:
+                    self.get_logger().error(
+                        f"Room not found: {pickup_name}"
+                    )
+                    continue
+
+                room_data = room.to_dict()
+
+                x = room_data["x"]
+                y = room_data["y"]
 
             # ---------- DESTINATION ----------
             elif status == "destination_in_transit":
@@ -179,66 +209,78 @@ class FirebaseListener(Node):
             f"Published goal ({x}, {y})"
         )
         
-    def on_camera_control(self, docs, changes, read_time):
+    # def on_camera_control(self, docs, changes, read_time):
 
-        self.get_logger().info("Camera listener triggered")
+    #     self.get_logger().info("Camera listener triggered")
 
-        for doc in docs:
+    #     for doc in docs:
 
-            data = doc.to_dict()
+    #         data = doc.to_dict()
 
-            self.get_logger().info(f"Data = {data}")
+    #         self.get_logger().info(f"Data = {data}")
 
-            camera_active = data.get("camera_active", False)
+    #         camera_active = data.get("camera_active", False)
+    #         follow_enabled = data.get("caregiver_following", False)
 
-            if camera_active:
-                self.get_logger().info("Starting camera server")
-                self.start_camera_server()
-            else:
-                self.get_logger().info("Stopping camera server")
-                self.stop_camera_server()
+    #         if camera_active:
+    #             self.get_logger().info("Starting camera server")
+    #             self.start_camera_server()
+    #         else:
+    #             self.get_logger().info("Stopping camera server")
+    #             self.stop_camera_server()
+
+    #         if follow_enabled:
+    #             self.get_logger().info("Caregiver following enabled")
+    #             msg = String()
+    #             msg.data = "START"
+    #             self.status_pub.publish(msg)
+    #         else:
+    #             self.get_logger().info("Caregiver following disabled")
+    #             msg = String()
+    #             msg.data = "STOP"
+    #             self.status_pub.publish(msg)
     
-    def start_camera_server(self):
+    # def start_camera_server(self):
 
-        if self.camera_process is not None:
-            self.get_logger().info(
-                "web_video_server already running"
-            )
-            return
+    #     if self.camera_process is not None:
+    #         self.get_logger().info(
+    #             "web_video_server already running"
+    #         )
+    #         return
 
-        try:
+    #     try:
 
-            self.camera_process = subprocess.Popen(
-                [
-                    "bash",
-                    "-c",
-                    "source /opt/ros/jazzy/setup.bash && ros2 run web_video_server web_video_server"
-                ]
-            )
+    #         self.camera_process = subprocess.Popen(
+    #             [
+    #                 "bash",
+    #                 "-c",
+    #                 "source /opt/ros/jazzy/setup.bash && ros2 run web_video_server web_video_server"
+    #             ]
+    #         )
 
-            self.get_logger().info(
-                "Started web_video_server"
-            )
+    #         self.get_logger().info(
+    #             "Started web_video_server"
+    #         )
 
-        except Exception as e:
+    #     except Exception as e:
 
-            self.get_logger().error(
-                f"Failed to start web_video_server: {e}"
-            )
+    #         self.get_logger().error(
+    #             f"Failed to start web_video_server: {e}"
+    #         )
 
-    def stop_camera_server(self):
+    # def stop_camera_server(self):
 
-        if self.camera_process is None:
-            return
+    #     if self.camera_process is None:
+    #         return
 
-        self.camera_process.terminate()
-        self.camera_process.wait()
+    #     self.camera_process.terminate()
+    #     self.camera_process.wait()
 
-        self.camera_process = None
+    #     self.camera_process = None
 
-        self.get_logger().info(
-            "Stopped web_video_server"
-        )
+    #     self.get_logger().info(
+    #         "Stopped web_video_server"
+    #     )
 
 def main(args=None):
 
